@@ -344,6 +344,53 @@ body.dragging *{cursor:grabbing !important;user-select:none !important;-webkit-u
 .ti .tname{font-weight:600}
 .ti .tsub{margin-left:auto;font-size:12px;color:var(--text-3)}
 
+/* ============ 设置 ============ */
+.settings{
+  position:relative;display:flex;width:min(94vw,660px);height:min(80vh,500px);
+  background:var(--menu-bg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--toolbar-border);border-radius:16px;box-shadow:var(--modal-shadow);
+  overflow:hidden;animation:modalIn .22s ease;
+}
+.settings-side{
+  flex:none;width:172px;display:flex;flex-direction:column;gap:4px;
+  padding:18px 10px;border-right:1px solid var(--toolbar-border);background:rgba(0,0,0,.05);
+}
+.settings-title{margin:2px 10px 12px;font-size:17px;font-weight:700}
+.snav-list{display:flex;flex-direction:column;gap:4px}
+.snav{
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  padding:10px 12px;border-radius:9px;font-size:14px;color:var(--text-2);white-space:nowrap;
+  transition:background-color .15s,color .15s;
+}
+.snav svg{flex:none}
+.snav:hover{color:var(--text);background:var(--seg-hover)}
+.snav[aria-current="page"]{color:var(--text);font-weight:600;background:var(--seg-bg)}
+.settings-main{flex:1;min-width:0;overflow:auto;padding:22px 26px}
+.settings-main h3{margin:0 0 6px;font-size:16px}
+.spage-desc{margin:0 0 12px;font-size:13px;color:var(--text-3);line-height:1.7}
+.sopt{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  padding:12px;border-radius:10px;font-size:14px;
+  transition:background-color .15s;
+}
+.sopt:hover{background:var(--seg-hover)}
+.sopt .swatch{width:42px;height:42px;border-radius:10px}
+.sopt[aria-checked="true"]{background:var(--seg-bg)}
+.sopt[aria-checked="true"] .swatch .tick{display:block}
+.sopt .oname{font-weight:600;font-size:15px}
+.sopt .osub{margin-left:auto;font-size:12.5px;color:var(--text-3)}
+.about-row{
+  display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding:12px 2px;border-bottom:1px solid var(--toolbar-border);font-size:14px;line-height:1.7;
+}
+.about-row .k{flex:none;color:var(--text-3)}
+.about-row .v{text-align:right;color:var(--text)}
+.settings-x{
+  position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;
+  color:var(--text-3);font-size:14px;display:flex;align-items:center;justify-content:center;z-index:2;
+}
+.settings-x:hover{background:var(--seg-bg);color:var(--text)}
+
 /* ============ 提示条 ============ */
 .toast{
   position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:160;
@@ -381,6 +428,16 @@ body.dragging *{cursor:grabbing !important;user-select:none !important;-webkit-u
   .footbar{padding-left:13px;padding-right:13px;flex-direction:column;gap:2px}
   .footbar p{text-align:left}
   .privacy{white-space:normal}
+  /* 设置：边栏收成顶部横向页签 */
+  .settings{flex-direction:column;height:min(86vh,560px)}
+  .settings-side{
+    width:auto;border-right:0;border-bottom:1px solid var(--toolbar-border);
+    padding:10px 12px;flex-direction:row;align-items:center;gap:8px;
+  }
+  .settings-title{margin:0;font-size:15px;white-space:nowrap}
+  .snav-list{flex-direction:row;overflow-x:auto;gap:2px}
+  .snav{width:auto}
+  .settings-main{padding:18px 16px}
 }
 @media (max-width:360px){
   .actions{flex-wrap:wrap}

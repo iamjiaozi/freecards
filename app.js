@@ -245,8 +245,6 @@ function renderToolbar() {
   }
   dirBtn.disabled = disabled; dirBtn.title = title; dirBtn.setAttribute('aria-label', title);
   up.hidden = !showUp; down.hidden = showUp;
-  // 主题按钮
-  $('#themeLabel').textContent = THEMES[currentTheme()].name;
   // 多选开关
   const mb = $('#btnMulti');
   mb.setAttribute('aria-pressed', ui.multiselect ? 'true' : 'false');
@@ -338,7 +336,7 @@ function modalHasContent() {
 
 function openModal() {
   if (ui.editingId) commitEdit();       // 弹层抢占焦点，编辑自动收尾（2.3）
-  closeMenu(false); closeThemePanel();
+  closeMenu(false); closeSettings();
   modal.type = 'text';
   $$('#typeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.type === 'text' ? 'true' : 'false'));
   renderModalFields();
@@ -1129,14 +1127,13 @@ function applyTheme() {
   document.documentElement.setAttribute('data-theme', t);
   const m = $('#metaTheme');
   if (m) m.setAttribute('content', META_COLORS[t]); // 地址栏配色跟随（FR-11.4）
-  $('#themeLabel').textContent = THEMES[t].name;
 }
 function setTheme(name) {
   if (!THEMES[name] || store.theme === name) return;
   store.theme = name;
   scheduleSave();
   applyTheme();
-  if (!themePanelEl.hidden) renderThemePanel();
+  if (settingsOpen() && ui.settingsPage === 'theme') renderThemePage(); // 刷新选中态
 }
 // 仅从未选过主题时跟随系统深浅色变化（E5）
 try {
@@ -1145,59 +1142,97 @@ try {
   });
 } catch (e) {}
 
-const themePanelEl = $('#themePanel');
-function renderThemePanel() {
+/* ============================================================
+ * 设置：左侧边栏 + 右侧内容。新增设置页只需在 SETTINGS_PAGES
+ * 里加一条 { id, name, icon, render }，边栏与路由自动生成。
+ * ============================================================ */
+const settingsOverlayEl = $('#settingsOverlay');
+const settingsNavEl = $('#settingsNav');
+const settingsMainEl = $('#settingsMain');
+const SETTINGS_PAGES = [
+  {
+    id: 'theme', name: '主题',
+    icon: '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 1.8a6.2 6.2 0 1 0 0 12.4c.8 0 1.2-.5 1.2-1.1 0-.8-.7-1-.7-1.7 0-.8.6-1.3 1.5-1.3H11a2.9 2.9 0 0 0 2.9-2.9C13.9 4 11.2 1.8 8 1.8z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.4" cy="6.2" r="1.1" fill="currentColor"/><circle cx="8.2" cy="4.6" r="1.1" fill="currentColor"/><circle cx="11" cy="6.4" r="1.1" fill="currentColor"/></svg>',
+    render: renderThemePage,
+  },
+  {
+    id: 'about', name: '关于',
+    icon: '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.2v3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="5" r="1" fill="currentColor"/></svg>',
+    render: renderAboutPage,
+  },
+];
+function settingsOpen() { return !settingsOverlayEl.hidden; }
+function renderSettingsNav() {
+  settingsNavEl.innerHTML = SETTINGS_PAGES.map(p =>
+    `<button class="snav" type="button" data-page="${p.id}" aria-current="${p.id === ui.settingsPage ? 'page' : 'false'}">` +
+    `${p.icon}<span>${p.name}</span></button>`
+  ).join('');
+}
+function renderSettingsPage() {
+  renderSettingsNav();
+  const p = SETTINGS_PAGES.find(p => p.id === ui.settingsPage) || SETTINGS_PAGES[0];
+  ui.settingsPage = p.id;
+  p.render();
+}
+// 预览色块直接套用该主题的 CSS 变量，保证与真实配色一致（FR-11.3）
+function renderThemePage() {
   const cur = currentTheme();
-  // 预览色块直接套用该主题的 CSS 变量，保证与真实配色一致（FR-11.3）
-  themePanelEl.innerHTML = Object.keys(THEMES).map(key => {
-    const t = THEMES[key];
-    return `<button class="ti" role="menuitemradio" aria-checked="${key === cur}" data-theme-key="${key}">` +
-      `<span class="swatch" data-theme="${key}" aria-hidden="true"><span class="dot"></span><span class="tick">✓</span></span>` +
-      `<span class="tname">${t.name}</span><span class="tsub">${t.sub}</span></button>`;
-  }).join('');
+  settingsMainEl.innerHTML = `<h3>主题</h3><p class="spage-desc">点击即时生效，偏好保存在本机。</p>` +
+    Object.keys(THEMES).map(key => {
+      const t = THEMES[key];
+      return `<button class="sopt" role="radio" aria-checked="${key === cur}" data-theme-key="${key}">` +
+        `<span class="swatch" data-theme="${key}" aria-hidden="true"><span class="dot"></span><span class="tick">✓</span></span>` +
+        `<span class="oname">${t.name}</span><span class="osub">${t.sub}</span></button>`;
+    }).join('');
 }
-function openThemePanel() {
+function renderAboutPage() {
+  const n = store.cards.length;
+  const row = (k, v) => `<div class="about-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  settingsMainEl.innerHTML = `<h3>关于</h3><p class="spage-desc">把想到的事随手记成卡片，再用拖拽摆出自己想要的顺序。</p>` +
+    row('应用', 'free note ver 1.0') +
+    row('卡片', n + ' 张') +
+    row('数据存储', '仅本机浏览器') +
+    row('网络', '无需联网，离线可用') +
+    row('隐私', '不上传任何服务器');
+}
+function openSettings(page) {
+  ui.settingsPage = page || ui.settingsPage || 'theme';
   closeMenu(false);
-  renderThemePanel();
-  themePanelEl.hidden = false;
-  $('#btnTheme').setAttribute('aria-expanded', 'true');
-  const btn = $('#btnTheme').getBoundingClientRect();
-  const pw = themePanelEl.offsetWidth;
-  // 正下方右对齐展开（FR-11.2）
-  themePanelEl.style.left = clamp(btn.right - pw, 8, window.innerWidth - pw - 8) + 'px';
-  themePanelEl.style.top = (btn.bottom + 8) + 'px';
-  const cur = $(`.ti[data-theme-key="${currentTheme()}"]`, themePanelEl);
-  if (cur) cur.focus({ preventScroll: true }); // 焦点落在当前选中项（FR-11.5）
+  if (ui.modalOpen) closeModal();
+  renderSettingsPage();
+  settingsOverlayEl.hidden = false;
+  document.body.classList.add('locked');
+  const cur = $(`.snav[data-page="${ui.settingsPage}"]`, settingsNavEl);
+  if (cur) cur.focus({ preventScroll: true });
 }
-function closeThemePanel(focusBtn) {
-  if (themePanelEl.hidden) return;
-  themePanelEl.hidden = true;
-  $('#btnTheme').setAttribute('aria-expanded', 'false');
-  if (focusBtn) $('#btnTheme').focus({ preventScroll: true });
+function closeSettings(focusBtn) {
+  if (!settingsOpen()) return;
+  settingsOverlayEl.hidden = true;
+  document.body.classList.remove('locked');
+  if (focusBtn) $('#btnSettings').focus({ preventScroll: true });
 }
-$('#btnTheme').addEventListener('click', () => {
-  themePanelEl.hidden ? openThemePanel() : closeThemePanel(false);
+$('#btnSettings').addEventListener('click', () => { settingsOpen() ? closeSettings(false) : openSettings(); });
+$('#settingsClose').addEventListener('click', () => closeSettings(true));
+settingsOverlayEl.addEventListener('pointerdown', e => {
+  if (e.target === settingsOverlayEl) closeSettings(false); // 点遮罩关闭
 });
-themePanelEl.addEventListener('click', e => {
-  const b = e.target.closest('.ti');
+settingsNavEl.addEventListener('click', e => {
+  const b = e.target.closest('.snav');
+  if (!b || b.dataset.page === ui.settingsPage) return;
+  ui.settingsPage = b.dataset.page;
+  renderSettingsPage();
+});
+settingsMainEl.addEventListener('click', e => {
+  const b = e.target.closest('.sopt');
   if (!b) return;
   setTheme(b.dataset.themeKey); // 选中即生效（FR-11.4）
-  closeThemePanel(true);
 });
-themePanelEl.addEventListener('keydown', e => {
-  const items = $$('.ti', themePanelEl);
+settingsMainEl.addEventListener('keydown', e => {
+  const items = $$('.sopt', settingsMainEl);
   const i = items.indexOf(document.activeElement);
   if (e.key === 'ArrowDown') { e.preventDefault(); (items[i + 1] || items[0]).focus(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); (items[i - 1] || items[items.length - 1]).focus(); }
-  else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
-  else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
 });
-window.addEventListener('pointerdown', e => {
-  if (themePanelEl.hidden) return;
-  if (!themePanelEl.contains(e.target) && !$('#btnTheme').contains(e.target)) closeThemePanel(false);
-}, true);
-window.addEventListener('scroll', () => { if (!themePanelEl.hidden) closeThemePanel(false); }, true);
-window.addEventListener('resize', () => { if (!themePanelEl.hidden) closeThemePanel(false); });
 
 /* ============================================================
  * Esc 归属顺序（5.5）：一次只关一层；页面级监听，输入法组字时也有效
@@ -1206,7 +1241,7 @@ let escDownHandled = false;
 function escTopLayer() {
   if (ui.modalOpen) return 'modal';
   if (!menuEl.hidden) return 'menu';
-  if (!themePanelEl.hidden) return 'theme';
+  if (settingsOpen()) return 'settings';
   if (ui.editingId) return 'editing';
   if (ui.multiselect) return 'multi';
   return null;
@@ -1217,7 +1252,7 @@ window.addEventListener('keydown', e => {
   const layer = escTopLayer();
   if (layer === 'modal') closeModal();
   else if (layer === 'menu') closeMenu(true);
-  else if (layer === 'theme') closeThemePanel(true);
+  else if (layer === 'settings') closeSettings(true);
   else if (layer === 'editing') cancelEdit();
   else if (layer === 'multi') exitMultiselect();
   escDownHandled = true;

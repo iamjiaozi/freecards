@@ -94,7 +94,7 @@ function loadStore() {
     if (raw.dirs.created === 'asc' || raw.dirs.created === 'desc') dirs.created = raw.dirs.created;
     if (raw.dirs.alpha === 'asc' || raw.dirs.alpha === 'desc') dirs.alpha = raw.dirs.alpha;
   }
-  const themeOk = { dark: 1, light: 1, indigo: 1, paper: 1 };
+  const themeOk = { dark: 1, light: 1, indigo: 1, paper: 1, cold: 1 };
   return {
     cards,
     sortMode: ['created', 'alpha', 'manual'].includes(raw.sortMode) ? raw.sortMode : 'created',
@@ -1116,8 +1116,9 @@ const THEMES = {
   light: { name: '浅色', sub: '明亮' },
   indigo: { name: '靛蓝', sub: '夜色' },
   paper: { name: '暖纸', sub: '纸上' },
+  cold: { name: '冷峻', sub: '铁灰' },
 };
-const META_COLORS = { dark: '#11141b', light: '#f2f3f5', indigo: '#0c1230', paper: '#f3ecda' };
+const META_COLORS = { dark: '#11141b', light: '#f2f3f5', indigo: '#0c1230', paper: '#f3ecda', cold: '#14161a' };
 function currentTheme() {
   if (store.theme) return store.theme;
   try { return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }

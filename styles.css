@@ -76,6 +76,30 @@
   --logo-2:#a06a3a; --logo-3:#c98d45;
   --theme-color-meta:#f3ecda;
 }
+/* 冷峻：灰黑铁灰 + 全直角（压掉所有圆角） + 更几何冷感的字体 */
+[data-theme="cold"]{
+  color-scheme:dark;
+  --bg:#14161a; --glow-a:rgba(126,156,192,.07); --glow-b:rgba(126,156,192,.05);
+  --toolbar-bg:rgba(20,22,27,.78); --toolbar-border:rgba(255,255,255,.11);
+  --seg-bg:rgba(255,255,255,.05); --seg-hover:rgba(255,255,255,.10); --menu-bg:rgba(23,25,31,.95);
+  --card-bg:#1d2127; --card-bg-hover:#232931; --card-border:rgba(255,255,255,.13);
+  --card-border-strong:rgba(255,255,255,.34);
+  --card-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 10px 28px rgba(0,0,0,.55);
+  --float-shadow:0 24px 60px rgba(0,0,0,.6);
+  --text:#dde1e8; --text-2:#959ca9; --text-3:#626874; --on-accent:#ffffff;
+  --accent:#7e9cc0; --accent-2:#a9bed6;
+  --accent-glow:rgba(126,156,192,.34); --accent-glow-2:rgba(126,156,192,.15);
+  --danger:#d26a65; --scrollbar:rgba(255,255,255,.17);
+  --slot-bg:rgba(255,255,255,.02); --slot-inset:inset 0 2px 10px rgba(0,0,0,.5);
+  --overlay:rgba(10,12,15,.6); --modal-shadow:0 30px 80px rgba(0,0,0,.6);
+  --logo-2:#5d748f; --logo-3:#93a9c2;
+  --theme-color-meta:#14161a;
+}
+[data-theme="cold"] *,[data-theme="cold"] *::before,[data-theme="cold"] *::after{border-radius:0 !important}
+[data-theme="cold"] body{
+  font-family:"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+  letter-spacing:.02em; /* 字距微张，拉出冷峻感 */
+}
 
 /* ============ 基础 ============ */
 html,body{height:100%}

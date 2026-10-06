@@ -2,8 +2,7 @@
 const CACHE = 'freecards-v1';
 const ASSETS = [
   './', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest',
-  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
-  'icons/icon-maskable-512.png', 'icons/icon-180.png',
+  'icons/icon.svg',
 ];
 
 self.addEventListener('install', e => {

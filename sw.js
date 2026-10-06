@@ -1,9 +1,12 @@
 /* 自由卡片 · Service Worker：离线可用（FR-15.2） */
-const CACHE = 'freecards-v2';
+const CACHE = 'freecards-v3';
 const ASSETS = [
   './', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest',
   'icons/icon.svg',
 ];
+// 版本强耦合三件套：HTML 引用了 JS/CSS 的元素与类名，任一件新旧错配
+// 都会直接报错白屏，必须同版本。离线时回退缓存（三件套同一次写入，天然一致）。
+const COUPLED = new Set(['index.html', 'styles.css', 'app.js', './', '']);
 
 self.addEventListener('install', e => {
   // cache:'reload' 确保安装时拿到的是最新文件，不被 HTTP 缓存卡住
@@ -26,21 +29,22 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
-  // 页面导航：网络优先——在线时永远拿最新版，解决"更新后看不到"的问题；
-  // 离线时回退到缓存，保证离线可用。
-  if (e.request.mode === 'navigate') {
+  const key = url.pathname.split('/').pop().split('?')[0];
+  // 页面导航 + 强耦合三件套：网络优先——在线时永远拿同版本最新，杜绝新旧错配；
+  // 离线时回退缓存，保证离线可用。
+  if (e.request.mode === 'navigate' || COUPLED.has(key)) {
     e.respondWith(
       fetch(e.request).then(res => {
         if (res && res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then(c => c.put('index.html', copy)).catch(() => {});
+          caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => caches.match('index.html'))
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('index.html')))
     );
     return;
   }
-  // 静态资源：缓存优先，命中不了再走网络
+  // 其余静态资源（图标、manifest）：缓存优先，命中不了再走网络
   e.respondWith(
     caches.match(e.request, { ignoreSearch: false }).then(hit => {
       if (hit) return hit;
